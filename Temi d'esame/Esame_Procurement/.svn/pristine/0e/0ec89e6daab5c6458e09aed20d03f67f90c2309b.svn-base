@@ -1,0 +1,68 @@
+package warehouse;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import static java.util.stream.Collectors.*;
+
+public class Product {
+
+	private String codice;
+	private String descrizione;
+	private int quantit‡;
+	private List<Supplier> fornitoriProdotto = new ArrayList<>();
+	private List<Order> ordiniProdotto = new ArrayList<>();
+
+	public Product(String codice, String descrizione) {
+		super();
+		this.codice = codice;
+		this.descrizione = descrizione;
+	}
+
+	public String getCode() {
+		return codice;
+	}
+
+	public String getDescription() {
+		return descrizione;
+	}
+
+	public void setQuantity(int quantity) {
+		this.quantit‡ = quantity;
+	}
+
+	public void decreaseQuantity() {
+		this.quantit‡--;
+	}
+
+	public void increaseQuantity(int quantity) {
+		this.quantit‡ += quantity;
+	}
+
+	public int getQuantity() {
+		return quantit‡;
+	}
+
+	public void setFornitoriProdotto(Supplier supplier) {
+		this.fornitoriProdotto.add(supplier);
+	}
+
+	public List<Supplier> suppliers() {
+		List<Supplier> rifornitoriPerNome = new ArrayList<>(this.fornitoriProdotto);
+		Collections.sort(rifornitoriPerNome, Comparator.comparing(Supplier::getNome));
+		return rifornitoriPerNome;
+	}
+
+
+	public void setOrdiniProdotto(Order ordine) {
+		this.ordiniProdotto.add(ordine);
+	}
+
+	public List<Order> pendingOrders() {
+		return ordiniProdotto.stream()
+		.filter((Order o) -> !o.delivered())
+		.sorted(Comparator.comparing(Order::getQuantit‡Ordine).reversed())
+		.collect(toList());
+	}
+}

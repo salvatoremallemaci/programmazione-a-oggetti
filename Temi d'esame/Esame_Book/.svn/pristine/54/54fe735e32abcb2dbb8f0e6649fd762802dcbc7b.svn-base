@@ -1,0 +1,23 @@
+package it.polito.oop.books;
+
+public class Answer {
+
+	private String risposta;
+	private boolean check;
+
+	public Answer(String risposta, boolean check) {
+		super();
+		this.risposta = risposta;
+		this.check = check;
+	}
+
+	public void setRisposta(String risposta) {
+		this.risposta = risposta;
+	}
+
+	public boolean isCheck() {
+		return check;
+	}
+
+
+}

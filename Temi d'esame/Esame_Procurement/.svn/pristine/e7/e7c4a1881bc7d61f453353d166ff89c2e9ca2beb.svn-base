@@ -1,0 +1,41 @@
+package warehouse;
+
+public class Order {
+
+	private String codice;
+	private Product merce;
+	private Supplier fornitore;
+	private int quantit‡Ordine;
+
+	public Order(Product merce, Supplier fornitore, int quantit‡Ordine) {
+		super();
+		this.merce = merce;
+		this.fornitore = fornitore;
+		this.quantit‡Ordine = quantit‡Ordine;
+	}
+
+	public void setCodice(String codice) {
+		this.codice = codice;
+	}
+
+	public String getCode() {
+		return codice;
+	}
+
+	public boolean delivered() {
+		// TODO: Completare!
+		return false;
+	}
+
+	public void setDelivered() throws MultipleDelivery {
+		// TODO: Completare!
+	}
+
+	public String toString() {
+		String ordineStringa = 
+				"Order" + " " + codice + " for " + quantit‡Ordine + 
+				" of " + merce.getCode() + " : " + merce.getDescription() + 
+				" from " + fornitore.getNome();
+		return ordineStringa;
+	}
+}

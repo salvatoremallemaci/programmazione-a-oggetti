@@ -1,0 +1,46 @@
+package warehouse;
+
+import java.util.List;
+
+public class Product {
+
+	private String codice;
+	private String descrizione;
+	private int quantità;
+
+	public Product(String codice, String descrizione) {
+		super();
+		this.codice = codice;
+		this.descrizione = descrizione;
+	}
+
+	public String getCode() {
+		return codice;
+	}
+
+	public String getDescription() {
+		return descrizione;
+	}
+
+	public void setQuantity(int quantity) {
+		this.quantità = quantity;
+	}
+
+	public void decreaseQuantity() {
+		this.quantità--;
+	}
+
+	public int getQuantity() {
+		return quantità;
+	}
+
+	public List<Supplier> suppliers() {
+		// TODO: completare!
+		return null;
+	}
+
+	public List<Order> pendingOrders() {
+		// TODO: completare
+		return null;
+	}
+}

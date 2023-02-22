@@ -1,0 +1,69 @@
+package ticketing;
+
+/**
+ * Class representing the ticket linked to an issue or malfunction.
+ * 
+ * The ticket is characterized by a severity and a state.
+ */
+public class Ticket {
+
+	private int ID;
+	private String descrizione;
+	private String autore;
+	private String componente;
+	private Severity severità;
+
+	/**
+	 * Enumeration of possible severity levels for the tickets.
+	 * 
+	 * Note: the natural order corresponds to the order of declaration
+	 */
+	public enum Severity {
+		Blocking, Critical, Major, Minor, Cosmetic
+	};
+
+	/**
+	 * Enumeration of the possible valid states for a ticket
+	 */
+	public static enum State {
+		Open, Assigned, Closed
+	}
+
+	public Ticket(int iD, String descrizione, String autore, String componente, Severity severità) {
+		super();
+		this.ID = iD;
+		this.descrizione = descrizione;
+		this.autore = autore;
+		this.componente = componente;
+		this.severità = severità;
+	}
+
+	public int getId() {
+		return ID;
+	}
+
+	public String getDescription() {
+		return descrizione;
+	}
+
+	public Severity getSeverity() {
+		return severità;
+	}
+
+	public String getAuthor() {
+		return autore;
+	}
+
+	public String getComponent() {
+		return componente;
+	}
+
+	public State getState() {
+		return null;
+	}
+
+	public String getSolutionDescription() throws TicketException {
+		return null;
+	}
+
+}

@@ -1,0 +1,32 @@
+package clinic;
+
+public class Patient {
+
+	private String Nome;
+	private String Cognome;
+	private String codiceFiscale;
+
+	public Patient(String nome, String cognome, String codiceFiscale) {
+		super();
+		Nome = nome;
+		Cognome = cognome;
+		this.codiceFiscale = codiceFiscale;
+	}
+
+	public String getNome() {
+		return Nome;
+	}
+
+	public String getCognome() {
+		return Cognome;
+	}
+
+	public String getCodiceFiscale() {
+		return codiceFiscale;
+	}
+
+	public String toString() {
+		return Cognome + " " + Nome + " " + "(" + codiceFiscale + ")";
+
+	}
+}

@@ -1,0 +1,64 @@
+package warehouse;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+public class Warehouse {
+	
+	Map<String,Product> prodotti = new TreeMap<>();
+	Map<String,Supplier> rifornitori = new TreeMap<>();
+	
+	public Product newProduct(String code, String description){
+		Product p = new Product(code, description);
+		prodotti.put(code, p);
+		return p;
+	}
+	
+	public Collection<Product> products(){
+		return prodotti.values();
+	}
+
+	public Product findProduct(String code){
+		return prodotti.get(code);
+	}
+
+	public Supplier newSupplier(String code, String name){
+		Supplier s = new Supplier(code, name);
+		rifornitori.put(code, s);
+		return s;
+	}
+	
+	public Supplier findSupplier(String code){
+		return rifornitori.get(code);
+	}
+
+	public Order issueOrder(Product prod, int quantity, Supplier supp)
+		throws InvalidSupplier {
+		// TODO: completare
+		return null;
+	}
+
+	public Order findOrder(String code){
+		// TODO: completare
+		return null;
+	}
+	
+	public List<Order> pendingOrders(){
+		// TODO: completare
+		return null;
+	}
+
+	public Map<String,List<Order>> ordersByProduct(){
+	    return null;
+	}
+	
+	public Map<String,Long> orderNBySupplier(){
+	    return null;
+	}
+	
+	public List<String> countDeliveredByProduct(){
+	    return null;
+	}
+}

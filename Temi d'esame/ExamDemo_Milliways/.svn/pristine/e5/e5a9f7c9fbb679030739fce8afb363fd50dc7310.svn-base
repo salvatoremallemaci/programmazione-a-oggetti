@@ -1,0 +1,56 @@
+package it.polito.oop.milliways;
+
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+public class Restaurant {
+
+	Map<String, Race> listaRazze = new TreeMap<>();
+
+	public Restaurant() {
+	}
+
+	public Race defineRace(String name) throws MilliwaysException {
+
+		Race r = new Race(name);
+		if (listaRazze.containsKey(name))
+			throw new MilliwaysException();
+		listaRazze.put(name, r);
+		return r;
+	}
+
+	public Party createParty() {
+		Party p = new Party();
+		return p;
+	}
+
+	public Hall defineHall(int id) throws MilliwaysException {
+		return null;
+	}
+
+	public List<Hall> getHallList() {
+		return null;
+	}
+
+	public Hall seat(Party party, Hall hall) throws MilliwaysException {
+		return null;
+	}
+
+	public Hall seat(Party party) throws MilliwaysException {
+		return null;
+	}
+
+	public Map<Race, Integer> statComposition() {
+		return null;
+	}
+
+	public List<String> statFacility() {
+		return null;
+	}
+
+	public Map<Integer, List<Integer>> statHalls() {
+		return null;
+	}
+
+}

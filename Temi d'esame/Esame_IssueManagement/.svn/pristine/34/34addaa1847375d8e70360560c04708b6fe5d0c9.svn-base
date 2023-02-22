@@ -1,0 +1,314 @@
+package ticketing;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import ticketing.Ticket.State;
+
+import static java.util.stream.Collectors.*;
+import static java.util.Comparator.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+
+public class IssueManager {
+
+	Map<String, User> elencoUtenti = new TreeMap<>();
+	Map<String, Component> componenti = new TreeMap<>();
+	Map<Integer, Ticket> biglietti = new TreeMap<>();
+
+	/**
+	 * Eumeration of valid user classes
+	 */
+	public static enum UserClass {
+		/** user able to report an issue and create a corresponding ticket **/
+		Reporter,
+		/** user that can be assigned to handle a ticket **/
+		Maintainer
+	}
+
+	/**
+	 * Creates a new user
+	 * 
+	 * @param username
+	 *            name of the user
+	 * @param classes
+	 *            user classes
+	 * @throws TicketException
+	 *             if the username has already been created or if no user class has
+	 *             been specified
+	 */
+	public void createUser(String username, UserClass... classes) throws TicketException {
+		Set<UserClass> ruoliUtente = new HashSet<>();
+		if (elencoUtenti.containsKey(username))
+			throw new TicketException("Utente già inserito.\n");
+		for (UserClass u : classes)
+			ruoliUtente.add(u);
+		if (ruoliUtente.size() == 0)
+			throw new TicketException("Nessun ruolo è indicato.\n");
+		User u = new User(username, ruoliUtente);
+		elencoUtenti.put(username, u);
+	}
+
+	/**
+	 * Creates a new user
+	 * 
+	 * @param username
+	 *            name of the user
+	 * @param classes
+	 *            user classes
+	 * @throws TicketException
+	 *             if the username has already been created or if no user class has
+	 *             been specified
+	 */
+	public void createUser(String username, Set<UserClass> classes) throws TicketException {
+		Set<UserClass> ruoliUtente = classes;
+		if (elencoUtenti.containsKey(username))
+			throw new TicketException("Utente già inserito.\n");
+		if (ruoliUtente.size() == 0)
+			throw new TicketException("Nessun ruolo è indicato.\n");
+
+		User u = new User(username, ruoliUtente);
+		elencoUtenti.put(username, u);
+	}
+
+	/**
+	 * Retrieves the user classes for a given user
+	 * 
+	 * @param username
+	 *            name of the user
+	 * @return the set of user classes the user belongs to
+	 */
+	public Set<UserClass> getUserClasses(String username) {
+		return elencoUtenti.get(username).getRuoli();
+	}
+
+	/**
+	 * Creates a new component
+	 * 
+	 * @param name
+	 *            unique name of the new component
+	 * @throws TicketException
+	 *             if a component with the same name already exists
+	 */
+	public void defineComponent(String name) throws TicketException {
+		if (componenti.containsKey(name))
+			throw new TicketException();
+
+		Component comp = new Component(name);
+		componenti.put(name, comp);
+		System.out.println(componenti.values());
+	}
+
+	/**
+	 * Creates a new sub-component as a child of an existing parent component
+	 * 
+	 * @param name
+	 *            unique name of the new component
+	 * @param parentPath
+	 *            path of the parent component
+	 * @throws TicketException
+	 *             if the the parent component does not exist or if a sub-component
+	 *             of the same parent exists with the same name
+	 */
+	public void defineSubComponent(String name, String parentPath) throws TicketException {
+		String p[] = parentPath.split("/");
+		String componentePadre = p[p.length - 1];
+
+		if (!componenti.containsKey(componentePadre))
+			throw new TicketException("Componente precedessore assente.\n");
+
+		if (componenti.get(componentePadre).getSottoComponente() != null) {
+			if (componenti.get(componentePadre).getSottoComponente().getNome().equals(name))
+				throw new TicketException("Sottocomponente con lo stesso nome presente.\n");
+		}
+		if (componenti.get(componentePadre).getSottoComponenti().contains(name))
+			throw new TicketException("Sottocomponente già inserita.\n");
+
+		componenti.get(componentePadre).setPath(parentPath);
+		String pathSottoComponente = parentPath + "/" + name;
+		Component sottoComponente = new Component(name);
+		sottoComponente.setPath(pathSottoComponente);
+		componenti.put(name, sottoComponente);
+		componenti.get(componentePadre).setSottoComponente(sottoComponente);
+		componenti.get(componentePadre).setSottoComponenti(name);
+	}
+
+	/**
+	 * Retrieves the sub-components of an existing component
+	 * 
+	 * @param path
+	 *            the path of the parent
+	 * @return set of children sub-components
+	 */
+	public Set<String> getSubComponents(String path) {
+		String p[] = path.split("/");
+		String componentePadre = p[p.length - 1];
+		Component cTmp = componenti.get(componentePadre);
+
+		return cTmp.getSottoComponenti();
+
+	}
+
+	/**
+	 * Retrieves the parent component
+	 * 
+	 * @param path
+	 *            the path of the parent
+	 * @return name of the parent
+	 */
+	public String getParentComponent(String path) {
+		String p[] = path.split("/");
+		String componentePredecessore = p[p.length - 2];
+		if (!componenti.containsKey(componentePredecessore))
+			return null;
+		return componenti.get(componentePredecessore).getPath();
+
+	}
+
+	/**
+	 * Opens a new ticket to report an issue/malfunction
+	 * 
+	 * @param username
+	 *            name of the reporting user
+	 * @param componentPath
+	 *            path of the component or sub-component
+	 * @param description
+	 *            description of the malfunction
+	 * @param severity
+	 *            severity level
+	 * 
+	 * @return unique id of the new ticket
+	 * 
+	 * @throws TicketException
+	 *             if the user name is not valid, the path does not correspond to a
+	 *             defined component, or the user does not belong to the Reporter
+	 *             {@link IssueManager.UserClass}.
+	 */
+	public int openTicket(String username, String componentPath, String description, Ticket.Severity severity)
+			throws TicketException {
+
+		if (!elencoUtenti.containsKey(username))
+			throw new TicketException("Username non valido.\n");
+		if (!elencoUtenti.get(username).getRuoli().contains(UserClass.Reporter))
+			throw new TicketException("L'utente non svolge il ruolo di Reporter.\n");
+
+		String p[] = componentPath.split("/");
+		String nomeComponente = p[p.length - 1];
+
+		if (!componenti.containsKey(nomeComponente))
+			throw new TicketException("Il path non identifica alcun elemento.\n");
+
+		int numTicket = biglietti.size() + 1;
+		Ticket t = new Ticket(numTicket, description, username, nomeComponente, severity);
+		biglietti.put(numTicket, t);
+
+		return numTicket;
+	}
+
+	/**
+	 * Returns a ticket object given its id
+	 * 
+	 * @param ticketId
+	 *            id of the tickets
+	 * @return the corresponding ticket object
+	 */
+	public Ticket getTicket(int ticketId) {
+
+		if (!biglietti.containsKey(ticketId))
+			return null;
+		return biglietti.get(ticketId);
+	}
+
+	/**
+	 * Returns all the existing tickets sorted by severity
+	 * 
+	 * @return list of ticket objects
+	 */
+	public List<Ticket> getAllTickets() {
+
+		ArrayList<Ticket> res = new ArrayList<>();
+		res.addAll(biglietti.values());
+		Collections.sort(res, Comparator.comparing(Ticket::getSeverity));
+
+		return res;
+	}
+
+	/**
+	 * Assign a maintainer to an open ticket
+	 * 
+	 * @param ticketId
+	 *            id of the ticket
+	 * @param username
+	 *            name of the maintainer
+	 * @throws TicketException
+	 *             if the ticket is in state <i>Closed</i>, the ticket id or the
+	 *             username are not valid, or the user does not belong to the
+	 *             <i>Maintainer</i> user class
+	 */
+	public void assingTicket(int ticketId, String username) throws TicketException {
+		if (!biglietti.containsKey(ticketId))
+			throw new TicketException("Ticket non valido.\n");
+		if (!elencoUtenti.containsKey(username))
+			throw new TicketException("Utente non valido.\n");
+		if (!elencoUtenti.get(username).getRuoli().contains(UserClass.Maintainer))
+			throw new TicketException("Utente non svolge il ruolo richiesto.\n");
+		Ticket t = biglietti.get(ticketId);
+		if(t.getState().equals(State.Closed))
+			throw new TicketException("Ticket già 'Closed'.\n");
+		t.setStato(State.Assigned);
+		elencoUtenti.get(username).setBiglietto(t);
+
+	}
+
+	/**
+	 * Closes a ticket
+	 * 
+	 * @param ticketId
+	 *            id of the ticket
+	 * @param description
+	 *            description of how the issue was handled and solved
+	 * @throws TicketException
+	 *             if the ticket is not in state <i>Assigned</i>
+	 */
+	public void closeTicket(int ticketId, String description) throws TicketException {
+		if(!biglietti.get(ticketId).getState().equals(State.Assigned))
+			throw new TicketException("Il ticket non si trova nello stato 'Assigned'\n");
+		Ticket t = biglietti.get(ticketId);
+		t.setStato(State.Closed);
+		t.setDescrizione(description);
+	}
+
+	/**
+	 * returns a sorted map (keys sorted in natural order) with the number of
+	 * tickets per Severity, considering only the tickets with the specific state.
+	 * 
+	 * @param state
+	 *            state of the tickets to be counted, all tickets are counted if
+	 *            <i>null</i>
+	 * @return a map with the severity and the corresponding count
+	 */
+	public SortedMap<Ticket.Severity, Long> countBySeverityOfState(Ticket.State state) {
+		return null;
+	}
+
+	/**
+	 * Find the top maintainers in terms of closed tickets.
+	 * 
+	 * The elements are strings formatted as <code>"username:###"</code> where
+	 * <code>username</code> is the user name and <code>###</code> is the number of
+	 * closed tickets. The list is sorter by descending number of closed tickets and
+	 * then by username.
+	 * 
+	 * @return A list of strings with the top maintainers.
+	 */
+	public List<String> topMaintainers() {
+		return null;
+	}
+
+}

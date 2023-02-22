@@ -1,0 +1,102 @@
+package warehouse;
+
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import static java.util.stream.Collectors.*;
+
+public class Warehouse {
+
+	Map<String, Product> prodotti = new TreeMap<>();
+	Map<String, Supplier> rifornitori = new TreeMap<>();
+	Map<String, Order> ordini = new TreeMap<>();
+
+	public Product newProduct(String code, String description) {
+		Product p = new Product(code, description);
+		prodotti.put(code, p);
+		return p;
+	}
+
+	public Collection<Product> products() {
+		return prodotti.values();
+	}
+
+	public Product findProduct(String code) {
+		return prodotti.get(code);
+	}
+
+	public Supplier newSupplier(String code, String name) {
+		Supplier s = new Supplier(code, name);
+		rifornitori.put(code, s);
+		return s;
+	}
+
+	public Supplier findSupplier(String code) {
+		return rifornitori.get(code);
+	}
+
+	public Order issueOrder(Product prod, int quantity, Supplier supp) throws InvalidSupplier {
+
+		if (!supp.supplies().contains(prod))
+			throw new InvalidSupplier();
+		Order o = new Order(prod, supp, quantity);
+		int numero = ordini.size()+1;
+		String codiceOrdine = "ORD" + numero;
+		o.setCodice(codiceOrdine);
+		ordini.put(codiceOrdine, o);
+		prod.setOrdiniProdotto(o);
+
+		return o;
+	}
+
+	public Order findOrder(String code) {
+		return ordini.get(code);
+	}
+	
+	public List<Order> pendingOrders() {
+		return ordini.values().stream()
+		.filter((Order o) -> !o.delivered())
+		.sorted(Comparator.comparing((Order o) -> o.getMerce().getCode()))
+		.collect(toList());
+	}
+
+	public Map<String, List<Order>> ordersByProduct() {		
+		return ordini.values().stream()
+				.collect(groupingBy(
+						o -> o.getMerce().getCode(),
+						TreeMap::new,
+						toList()
+						));
+	}
+
+	public Map<String, Long> orderNBySupplier() {
+		
+		return ordini.values().stream()
+		.filter((Order o) -> o.delivered())
+		.collect(groupingBy(
+				o -> o.getFornitore().getNome(),
+				TreeMap::new,
+				counting()
+				));
+	}
+
+	public List<String> countDeliveredByProduct() {
+		
+		return ordini.values().stream()
+		.filter((Order o) -> o.delivered())
+		.collect(groupingBy(
+				o -> o.getMerce().getCode(),
+				HashMap::new,
+				counting()
+				))
+		.entrySet().stream()
+		.sorted(Comparator.comparing(c -> - c.getValue()))
+		.map(c -> c.getKey() + " - " + c.getValue())
+		.collect(toList());
+	}
+
+}
